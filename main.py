@@ -28,7 +28,7 @@ def toggle_sidebar():
         toggle_button.config(text="☰")  # Change button text to '☰' when sidebar is hidden
     else:
         sidebar_frame.grid()  # Show the sidebar
-        toggle_button.config(text="✕")  # Change button text to '✕' when sidebar is visible
+        toggle_button.config(text="<☰")  # Change button text to '✕' when sidebar is visible
 
 # Window settings
 root = tk.Tk()
@@ -48,6 +48,24 @@ sidebar_button1 = ttk.Button(sidebar_frame, text="Option 1")
 sidebar_button1.pack(fill="x", pady=5)
 sidebar_button2 = ttk.Button(sidebar_frame, text="Option 2")
 sidebar_button2.pack(fill="x", pady=5)
+
+# Function to toggle the 'always on top' state
+is_always_on_top = False  # Track the state
+
+def toggle_always_on_top():
+    global is_always_on_top
+    if is_always_on_top:
+        root.attributes("-topmost", False)
+        always_on_top_button.config(text="pin")  # Reset button label
+        is_always_on_top = False
+    else:
+        root.attributes("-topmost", True)
+        always_on_top_button.config(text="*pin*")  # Change button label
+        is_always_on_top = True
+
+# Adding the toggle 'always on top' button to the sidebar, positioned at the bottom
+always_on_top_button = ttk.Button(sidebar_frame, text="pin", command=toggle_always_on_top, width=5)
+always_on_top_button.pack(side=tk.BOTTOM, pady=5)  # Positioned at the bottom of the sidebar
 
 # Frame to hold the chat history (Text + Scrollbar)
 chat_frame = ttk.Frame(root)
