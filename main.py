@@ -1,19 +1,52 @@
 import tkinter as tk
 from tkinter import ttk
 from ttkbootstrap import Style
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 INPUT_FIELD_MAX_HEIGHT = 5
 DEFAULT_WINDOW_SIZE = "500x600"
 MAIN_FONT = "Helvetica"
 SHIFT_KEYCODE = 0x0001
 
-# Fake conversation for debug
+GPT_MODEL = "gpt-3.5-turbo"
+
+conversation_history = [
+    {"role": "system", "content": "You are a helpful assistant."}
+]
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
+
+def send_message_to_gpt():
+    chat_completion = client.chat.completions.create(
+        messages=conversation_history,
+        model=GPT_MODEL,
+    )
+    return chat_completion
+
 def send_message():
     user_message = input_box.get("1.0", tk.END).strip()  # Get the text from the Text widget
     if user_message:  # Reject empty message
+        # Update chat history in the UI
         chat_history.config(state=tk.NORMAL)  # Enable editing in the text area
         chat_history.insert(tk.END, f"You:\n{user_message}\n\n")
-        chat_history.insert(tk.END, f"GPT:\nTotally legit response!\n\n")  # Fake response
+
+        # Append user message to conversation history
+        conversation_history.append({"role": "user", "content": user_message})
+
+        # Call OpenAI API to get response
+        gpt_response = send_message_to_gpt()
+
+        # Append GPT response to conversation history
+        conversation_history.append({"role": "assistant", "content": gpt_response})
+
+        # Display GPT's response in the UI
+        chat_history.insert(tk.END, f"GPT:\n{gpt_response}\n\n")  # Display GPT's response
         chat_history.config(state=tk.DISABLED)  # Disable editing
         chat_history.see(tk.END)  # Scroll to the end
         input_box.delete("1.0", tk.END)  # Clear the input box
