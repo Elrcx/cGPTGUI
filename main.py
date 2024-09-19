@@ -2,6 +2,11 @@ import tkinter as tk
 from tkinter import ttk
 from ttkbootstrap import Style
 
+INPUT_FIELD_MAX_HEIGHT = 5
+DEFAULT_WINDOW_SIZE = "500x600"
+MAIN_FONT = "Helvetica"
+SHIFT_KEYCODE = 0x0001
+
 # Fake conversation for debug
 def send_message():
     user_message = input_box.get("1.0", tk.END).strip()  # Get the text from the Text widget
@@ -15,7 +20,7 @@ def send_message():
 
 # Function to handle enter/shift+enter for sending message or adding newline
 def on_enter(event):
-    if event.state & 0x0001:  # Check if Shift key is pressed
+    if event.state & SHIFT_KEYCODE:  # Check if Shift key is pressed
         input_box.insert(tk.INSERT, "")  # Insert a newline
     else:
         send_message()  # Send the message if Enter is pressed without Shift
@@ -25,24 +30,24 @@ def on_enter(event):
 def toggle_sidebar():
     if sidebar_frame.winfo_ismapped():  # Check if the sidebar is visible
         sidebar_frame.grid_remove()  # Hide the sidebar
-        toggle_button.config(text="☰")  # Change button text to '☰' when sidebar is hidden
+        toggle_button.config(text="☰")
     else:
         sidebar_frame.grid()  # Show the sidebar
-        toggle_button.config(text="<☰")  # Change button text to '✕' when sidebar is visible
+        toggle_button.config(text="<☰")
 
 # Window settings
 root = tk.Tk()
 style = Style(theme='darkly')
 root.title("cGPTGUI: ChatGPT")
-root.geometry("500x600")  # Increased window width for sidebar
+root.geometry(DEFAULT_WINDOW_SIZE)
 
 # Sidebar frame (hidden by default)
 sidebar_frame = ttk.Frame(root, width=200, padding=(10, 10))
 sidebar_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")  # Sidebar on the left
 sidebar_frame.grid_remove()  # Initially hidden
 
-# Adding some sample widgets to the sidebar (customize as needed)
-sidebar_label = ttk.Label(sidebar_frame, text="Sidebar Content", font=("Helvetica", 14))
+# Sidebar widgets
+sidebar_label = ttk.Label(sidebar_frame, text="Sidebar Content", font=(MAIN_FONT, 14))
 sidebar_label.pack(pady=20)
 sidebar_button1 = ttk.Button(sidebar_frame, text="Option 1")
 sidebar_button1.pack(fill="x", pady=5)
@@ -56,11 +61,11 @@ def toggle_always_on_top():
     global is_always_on_top
     if is_always_on_top:
         root.attributes("-topmost", False)
-        always_on_top_button.config(text="pin")  # Reset button label
+        always_on_top_button.config(text="pin")
         is_always_on_top = False
     else:
         root.attributes("-topmost", True)
-        always_on_top_button.config(text="*pin*")  # Change button label
+        always_on_top_button.config(text="*pin*")
         is_always_on_top = True
 
 # Adding the toggle 'always on top' button to the sidebar, positioned at the bottom
@@ -77,7 +82,7 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
 # Scrollable text area for displaying chat history
 chat_history = tk.Text(chat_frame, height=20, wrap="word", state=tk.DISABLED, bg="#2c2f33", fg="#ffffff",
-                       font=("Helvetica", 12), yscrollcommand=scrollbar.set)
+                       font=(MAIN_FONT, 12), yscrollcommand=scrollbar.set)
 chat_history.pack(side=tk.LEFT, expand=True, fill="both")
 
 scrollbar.config(command=chat_history.yview)
@@ -91,7 +96,7 @@ send_button = ttk.Button(input_frame, text="Send", command=send_message)
 send_button.pack(side=tk.RIGHT)
 
 # Multiline input box using Text widget
-input_box = tk.Text(input_frame, font=("Helvetica", 12), height=1, wrap="word")
+input_box = tk.Text(input_frame, font=(MAIN_FONT, 12), height=1, wrap="word")
 input_box.pack(side=tk.LEFT, expand=True, fill="x", padx=(50, 10))
 
 # Autofocus on input field when the window is loaded
@@ -100,10 +105,10 @@ input_box.focus_set()
 # Bind the ENTER key to trigger the send button (without Shift) or insert newline (with Shift)
 input_box.bind("<Return>", on_enter)
 
-# Dynamically adjust input box height (up to 5 lines)
+# Dynamically adjust input box height
 def auto_resize(event):
     lines = int(input_box.index('end-1c').split('.')[0])  # Get current number of lines
-    if lines <= 5:
+    if lines <= INPUT_FIELD_MAX_HEIGHT:
         input_box.config(height=lines)  # Adjust the height to the number of lines
 
 input_box.bind("<KeyRelease>", auto_resize)
