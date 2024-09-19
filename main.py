@@ -14,13 +14,23 @@ SHIFT_KEYCODE = 0x0001
 
 GPT_MODEL = "gpt-3.5-turbo"
 
+LMSTUDIO_MODEL=os.environ.get("LMSTUDIO_MODEL")
+
+mode = None # chatgpt or lmstudio
+
 conversation_history = [
     {"role": "system", "content": "You are a helpful assistant."}
 ]
 
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
+client = None
+def reload_client():
+    global client
+    if mode == "chatgpt":
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"),
+                        )
+    elif mode == "lmstudio":
+        client = OpenAI(base_url="http://localhost:8626/v1",
+                        api_key="lm-studio")
 
 def send_message_to_gpt():
     chat_completion = client.chat.completions.create(
@@ -28,6 +38,14 @@ def send_message_to_gpt():
         model=GPT_MODEL,
     )
     return chat_completion
+
+def send_message_to_lmstudio():
+    chat_completion = client.chat.completions.create(
+        model="LMSTUDIO_MODEL",
+        messages=conversation_history,
+        temperature=0.7,
+    )
+    return chat_completion.choices[0].message.content
 
 def send_message():
     user_message = input_box.get("1.0", tk.END).strip()  # Get the text from the Text widget
@@ -39,14 +57,17 @@ def send_message():
         # Append user message to conversation history
         conversation_history.append({"role": "user", "content": user_message})
 
-        # Call OpenAI API to get response
-        gpt_response = send_message_to_gpt()
+        response = "No mode selected."
+        if mode == "chatgpt":
+            response = send_message_to_gpt()
+        elif mode == "lmstudio":
+            response = send_message_to_lmstudio()
 
         # Append GPT response to conversation history
-        conversation_history.append({"role": "assistant", "content": gpt_response})
+        conversation_history.append({"role": "assistant", "content": response})
 
         # Display GPT's response in the UI
-        chat_history.insert(tk.END, f"GPT:\n{gpt_response}\n\n")  # Display GPT's response
+        chat_history.insert(tk.END, f"GPT:\n{response}\n\n")  # Display GPT's response
         chat_history.config(state=tk.DISABLED)  # Disable editing
         chat_history.see(tk.END)  # Scroll to the end
         input_box.delete("1.0", tk.END)  # Clear the input box
@@ -68,10 +89,23 @@ def toggle_sidebar():
         sidebar_frame.grid()  # Show the sidebar
         toggle_button.config(text="<☰")
 
+# Mode set
+def set_mode_chatgpt():
+    global mode
+    mode = "chatgpt"
+    root.title("cGPTGUI: ChatGPT")
+    reload_client()
+
+def set_mode_lmstudio():
+    global mode
+    mode = "lmstudio"
+    root.title("cGPTGUI: LM Studio")
+    reload_client()
+
 # Window settings
 root = tk.Tk()
 style = Style(theme='darkly')
-root.title("cGPTGUI: ChatGPT")
+root.title("cGPTGUI: Select Mode")
 root.geometry(DEFAULT_WINDOW_SIZE)
 
 # Sidebar frame (hidden by default)
@@ -80,11 +114,11 @@ sidebar_frame.grid(row=0, column=0, rowspan=2, sticky="nsew")  # Sidebar on the 
 sidebar_frame.grid_remove()  # Initially hidden
 
 # Sidebar widgets
-sidebar_label = ttk.Label(sidebar_frame, text="Sidebar Content", font=(MAIN_FONT, 14))
+sidebar_label = ttk.Label(sidebar_frame, text="Select mode", font=(MAIN_FONT, 14))
 sidebar_label.pack(pady=20)
-sidebar_button1 = ttk.Button(sidebar_frame, text="Option 1")
+sidebar_button1 = ttk.Button(sidebar_frame, command=set_mode_chatgpt, text="ChatGPT")
 sidebar_button1.pack(fill="x", pady=5)
-sidebar_button2 = ttk.Button(sidebar_frame, text="Option 2")
+sidebar_button2 = ttk.Button(sidebar_frame, command=set_mode_lmstudio, text="LM Studio")
 sidebar_button2.pack(fill="x", pady=5)
 
 # Function to toggle the 'always on top' state
