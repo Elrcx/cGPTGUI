@@ -1,2 +1,8 @@
+venv
+.venv
+
 .idea
 .env
+
+.pyc
+**/**.pyc

@@ -37,7 +37,7 @@ def send_message_to_gpt():
         messages=conversation_history,
         model=GPT_MODEL,
     )
-    return chat_completion
+    return chat_completion.choices[0].message.content
 
 def send_message_to_lmstudio():
     chat_completion = client.chat.completions.create(
