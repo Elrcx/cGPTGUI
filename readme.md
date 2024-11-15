@@ -57,4 +57,4 @@ cGPTGUI is a simple Tkinter-based GUI application that allows users to chat with
 
 ## License
 
-This project is licensed under the [MIT License](https://en.wikipedia.org/wiki/MIT_License).
+This project is licensed under the [Beerware](https://en.wikipedia.org/wiki/Beerware).
